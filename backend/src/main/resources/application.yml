@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/forlove.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+forlove:
+  jwt:
+    secret: ForLoveSecretKey2024CoupleOnlyChangeInProduction!!
+    expiration-ms: 604800000
+  couple:
+    username1: you
+    password1: love123
+    username2: me
+    password2: love123
+    nickname1: 你
+    nickname2: 我
+    start-date: 2024-01-01
+    meet-places:
+      - name: 武汉大学
+        lat: 30.5315
+        lng: 114.3610
+      - name: 湖北大学
+        lat: 30.5810
+        lng: 114.3290
+
+upload:
+  dir: ./uploads

@@ -1,0 +1,83 @@
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.code-workspace
+.project
+.classpath
+.settings/
+.factorypath
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.*
+!.env.example
+*.local
+
+# =========================
+# Frontend (React + Vite)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# =========================
+# Backend (Spring Boot + Maven)
+# =========================
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/package-lock.json
+
+# Runtime data
+backend/data/
+backend/uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# =========================
+# Maven (keep wrapper scripts & properties)
+# =========================
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar.bak
+
+# =========================
+# Misc
+# =========================
+*.tmp
+*.temp
+*.bak
+*.orig
+.cache/
+coverage/
+.nyc_output/

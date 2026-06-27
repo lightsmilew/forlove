@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import Heart3D from '../components/Heart3D'
+import GomokuGame from '../components/GomokuGame'
 import { api } from '../api'
+
 const LOVE_MESSAGES = [
   '你是我心中永远盛开的那朵樱花',
   '每一颗爱心都是我对你的思念',
@@ -14,16 +16,6 @@ const LOVE_MESSAGES = [
   '武大樱花季，只想和你牵手走过',
   '你是我的今天，也是所有的明天',
 ]
-
-const QUIZ_QUESTIONS = [
-  { q: 'TA 最喜欢的季节是？', options: ['春天 🌸', '夏天 ☀️', '秋天 🍂', '冬天 ❄️'], answer: 0 },
-  { q: '约会时 TA 更喜欢的活动？', options: ['看电影', '逛校园', '吃美食', '一起打游戏'], answer: 1 },
-  { q: 'TA 的理想周末是？', options: ['宅家休息', '户外探险', '学习充电', '和你在武大看樱花'], answer: 3 },
-  { q: 'TA 觉得最浪漫的事是？', options: ['惊喜礼物', '手写情书', '一起做饭', '樱花树下的约定'], answer: 3 },
-  { q: 'TA 最爱的饮料？', options: ['奶茶', '咖啡', '果汁', '白开水'], answer: 0 },
-]
-
-const MEMORY_EMOJIS = ['💕', '🌸', '💑', '🎀', '💖', '✨', '💕', '🌸', '💑', '🎀', '💖', '✨']
 
 function HeartGame() {
   const [score, setScore] = useState(0)
@@ -48,16 +40,10 @@ function HeartGame() {
       <div className="game-score-display">爱心 {score}</div>
       <Heart3D onClick={clickHeart} />
       <p className="heart-game-hint">点击爱心，每 5 分解锁一句情话</p>
-      {message && (
-        <div className="heart-message-card">{message}</div>
-      )}
+      {message && <div className="heart-message-card">{message}</div>}
       <div className="heart-float-layer">
         {floats.map((h) => (
-          <span
-            key={h.id}
-            className="heart-float-score"
-            style={{ left: `calc(50% + ${h.x}px)` }}
-          >
+          <span key={h.id} className="heart-float-score" style={{ left: `calc(50% + ${h.x}px)` }}>
             +1
           </span>
         ))}
@@ -66,112 +52,214 @@ function HeartGame() {
   )
 }
 
-function QuizGame() {
-  const [current, setCurrent] = useState(0)
-  const [answers, setAnswers] = useState([])
-  const [finished, setFinished] = useState(false)
-  const [result, setResult] = useState(null)
+function QuizCreateForm({ onCreated }) {
+  const [question, setQuestion] = useState('')
+  const [options, setOptions] = useState(['', '', '', ''])
+  const [correctIndex, setCorrectIndex] = useState(0)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState('')
 
-  const selectAnswer = (idx) => {
-    const newAnswers = [...answers, idx]
-    setAnswers(newAnswers)
-    if (current < QUIZ_QUESTIONS.length - 1) {
-      setCurrent(c => c + 1)
-    } else {
-      let correct = 0
-      QUIZ_QUESTIONS.forEach((q, i) => { if (newAnswers[i] === q.answer) correct++ })
-      const pct = Math.round((correct / QUIZ_QUESTIONS.length) * 100)
-      setFinished(true)
-      setResult(pct)
-      api.saveGameScore('quiz', pct, JSON.stringify({ match: correct, total: QUIZ_QUESTIONS.length }))
-        .catch(() => {})
+  const updateOption = (idx, val) => {
+    setOptions((prev) => prev.map((o, i) => (i === idx ? val : o)))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+    const trimmed = options.map((o) => o.trim())
+    const filledItems = trimmed.map((o, i) => ({ o, i })).filter((x) => x.o)
+    const filled = filledItems.map((x) => x.o)
+    if (!question.trim()) {
+      setError('请输入题目')
+      return
+    }
+    if (filled.length < 2) {
+      setError('至少填写 2 个选项')
+      return
+    }
+    const correctInFilled = filledItems.findIndex((x) => x.i === correctIndex)
+    if (correctInFilled < 0) {
+      setError('请为标记的正确答案填写选项内容')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await api.createQuiz(question.trim(), filled, correctInFilled)
+      setSuccess(res.message || '题目已发送')
+      setQuestion('')
+      setOptions(['', '', '', ''])
+      setCorrectIndex(0)
+      onCreated?.()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (finished) {
+  return (
+    <form className="quiz-create-form" onSubmit={handleSubmit}>
+      <p className="quiz-hint">出一道选择题发给 TA，正确答案由你设定，看 TA 能否猜中~</p>
+      <div className="form-group">
+        <label>题目</label>
+        <input
+          className="form-input"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="例如：我最喜欢的季节是？"
+        />
+      </div>
+      {options.map((opt, i) => (
+        <div key={i} className="form-group quiz-option-row">
+          <label>
+            <input
+              type="radio"
+              name="correct"
+              checked={correctIndex === i}
+              onChange={() => setCorrectIndex(i)}
+            />
+            选项 {String.fromCharCode(65 + i)}
+          </label>
+          <input
+            className="form-input"
+            value={opt}
+            onChange={(e) => updateOption(i, e.target.value)}
+            placeholder={`选项 ${String.fromCharCode(65 + i)}`}
+          />
+        </div>
+      ))}
+      <p className="quiz-hint">选中 radio 标记正确答案（TA 需要猜中）</p>
+      {error && <p className="error-msg">{error}</p>}
+      {success && <p className="quiz-success">{success}</p>}
+      <button className="btn btn-primary" type="submit" disabled={loading}>
+        {loading ? '发送中...' : '发给 TA'}
+      </button>
+    </form>
+  )
+}
+
+function QuizAnswerPanel() {
+  const [pending, setPending] = useState([])
+  const [current, setCurrent] = useState(0)
+  const [feedback, setFeedback] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const list = await api.getPendingQuiz()
+      setPending(list)
+      setCurrent(0)
+      setFeedback(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  const selectAnswer = async (idx) => {
+    const q = pending[current]
+    try {
+      const res = await api.answerQuiz(q.id, idx)
+      setFeedback(res)
+      setTimeout(async () => {
+        const next = current + 1
+        if (next >= pending.length) {
+          await load()
+        } else {
+          setCurrent(next)
+          setFeedback(null)
+        }
+      }, 1500)
+    } catch (err) {
+      setFeedback({ message: err.message, matched: false })
+    }
+  }
+
+  if (loading) return <p className="quiz-hint">加载中...</p>
+  if (pending.length === 0) {
+    return <p className="quiz-hint">暂无待答题目，等 TA 给你出题吧~</p>
+  }
+
+  if (feedback) {
     return (
       <div className="game-area">
-        <div className="game-score-display">默契值 {result}%</div>
-        <p style={{ color: 'var(--accent)', fontSize: '1.2rem' }}>
-          {result >= 80 ? '心有灵犀，天生一对！' : result >= 60 ? '默契不错，继续了解彼此~' : '多玩几局，默契会越来越高！'}
-        </p>
-        <button className="btn btn-primary" onClick={() => { setCurrent(0); setAnswers([]); setFinished(false) }}>
-          再来一次
-        </button>
+        <div className={`quiz-feedback${feedback.matched ? ' match' : ''}`}>
+          {feedback.message}
+        </div>
       </div>
     )
   }
 
-  const q = QUIZ_QUESTIONS[current]
+  const q = pending[current]
   return (
     <div>
-      <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-        第 {current + 1} / {QUIZ_QUESTIONS.length} 题
+      <p className="quiz-hint">
+        {q.authorNickname} 出的题 · 第 {current + 1} / {pending.length} 题
       </p>
-      <h3 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{q.q}</h3>
+      <h3 className="quiz-question-title">{q.question}</h3>
       {q.options.map((opt, i) => (
-        <button key={i} className="quiz-option" onClick={() => selectAnswer(i)}>{opt}</button>
+        <button key={i} type="button" className="quiz-option" onClick={() => selectAnswer(i)}>
+          {String.fromCharCode(65 + i)}. {opt}
+        </button>
       ))}
     </div>
   )
 }
 
-function MemoryGame() {
-  const [cards, setCards] = useState([])
-  const [flipped, setFlipped] = useState([])
-  const [matched, setMatched] = useState([])
-  const [lock, setLock] = useState(false)
+function QuizReportPanel() {
+  const [report, setReport] = useState(null)
 
-  const init = useCallback(() => {
-    const emojis = MEMORY_EMOJIS.slice(0, 12)
-    const shuffled = [...emojis, ...emojis].sort(() => Math.random() - 0.5)
-    setCards(shuffled.map((e, i) => ({ id: i, emoji: e })))
-    setFlipped([])
-    setMatched([])
+  useEffect(() => {
+    api.getQuizReport().then(setReport).catch(console.error)
   }, [])
 
-  useEffect(() => { init() }, [init])
+  if (!report) return <p className="quiz-hint">加载中...</p>
 
-  const clickCard = (id) => {
-    if (lock || flipped.includes(id) || matched.includes(id)) return
-    const newFlipped = [...flipped, id]
-    setFlipped(newFlipped)
+  return (
+    <div className="game-area">
+      <div className="game-score-display">默契值 {report.compatibility}%</div>
+      <p style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>{report.message}</p>
+      <p className="quiz-hint">已完成 {report.matched} / {report.total} 题答对</p>
+      {report.details?.length > 0 && (
+        <ul className="quiz-report-list">
+          {report.details.map((d) => (
+            <li key={d.id} className={`quiz-report-item${d.matched ? ' matched' : ''}`}>
+              <strong>{d.authorNickname}：</strong>{d.question}
+              <span>{d.matched ? ' ✓ 默契' : ' ✗ 未中'}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
-    if (newFlipped.length === 2) {
-      setLock(true)
-      const [a, b] = newFlipped
-      if (cards[a].emoji === cards[b].emoji) {
-        setMatched(m => [...m, a, b])
-        setFlipped([])
-        setLock(false)
-        if (matched.length + 2 === cards.length) {
-          api.saveGameScore('memory', cards.length / 2).catch(() => {})
-        }
-      } else {
-        setTimeout(() => { setFlipped([]); setLock(false) }, 800)
-      }
-    }
-  }
+function QuizGame() {
+  const [mode, setMode] = useState('create')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   return (
     <div>
-      <div className="memory-grid">
-        {cards.map(c => (
-          <div
-            key={c.id}
-            className={`memory-card${flipped.includes(c.id) || matched.includes(c.id) ? ' flipped' : ''}${matched.includes(c.id) ? ' matched' : ''}`}
-            onClick={() => clickCard(c.id)}
-          >
-            {flipped.includes(c.id) || matched.includes(c.id) ? c.emoji : '?'}
-          </div>
-        ))}
+      <div className="tab-bar quiz-sub-tabs">
+        <button type="button" className={`tab-btn${mode === 'create' ? ' active' : ''}`} onClick={() => setMode('create')}>
+          给 TA 出题
+        </button>
+        <button type="button" className={`tab-btn${mode === 'answer' ? ' active' : ''}`} onClick={() => setMode('answer')}>
+          回答 TA 的题
+        </button>
+        <button type="button" className={`tab-btn${mode === 'report' ? ' active' : ''}`} onClick={() => setMode('report')}>
+          默契报告
+        </button>
       </div>
-      {matched.length === cards.length && cards.length > 0 && (
-        <p style={{ textAlign: 'center', color: 'var(--accent)', marginTop: '1rem' }}>全部配对成功！</p>
+      {mode === 'create' && (
+        <QuizCreateForm onCreated={() => setRefreshKey((k) => k + 1)} key={refreshKey} />
       )}
-      <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <button className="btn btn-secondary" onClick={init}>重新开始</button>
-      </div>
+      {mode === 'answer' && <QuizAnswerPanel key={`answer-${refreshKey}`} />}
+      {mode === 'report' && <QuizReportPanel key={`report-${refreshKey}`} />}
     </div>
   )
 }
@@ -188,13 +276,13 @@ export default function Games() {
       <div className="tab-bar" style={{ justifyContent: 'center' }}>
         <button className={`tab-btn${tab === 'heart' ? ' active' : ''}`} onClick={() => setTab('heart')}>爱心点击</button>
         <button className={`tab-btn${tab === 'quiz' ? ' active' : ''}`} onClick={() => setTab('quiz')}>默契问答</button>
-        <button className={`tab-btn${tab === 'memory' ? ' active' : ''}`} onClick={() => setTab('memory')}>翻牌配对</button>
+        <button className={`tab-btn${tab === 'gomoku' ? ' active' : ''}`} onClick={() => setTab('gomoku')}>五子棋对决</button>
       </div>
 
       <div className="card">
         {tab === 'heart' && <HeartGame />}
         {tab === 'quiz' && <QuizGame />}
-        {tab === 'memory' && <MemoryGame />}
+        {tab === 'gomoku' && <GomokuGame />}
       </div>
     </Layout>
   )

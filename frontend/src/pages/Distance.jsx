@@ -26,8 +26,8 @@ export default function Distance() {
   const nicknames = useMemo(() => {
     if (!config) return {}
     return {
-      [config.username1 || 'you']: config.nickname1,
-      [config.username2 || 'me']: config.nickname2,
+      [config.username1 || 'ye']: config.nickname1,
+      [config.username2 || 'jie']: config.nickname2,
     }
   }, [config])
 

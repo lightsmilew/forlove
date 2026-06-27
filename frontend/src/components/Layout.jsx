@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import SakuraCanvas from './SakuraCanvas'
+import OnlineStatus from './OnlineStatus'
 import { useDarkMode } from '../hooks/useTheme'
 
 export default function Layout({ children, particleMode = 'sakura' }) {
@@ -28,6 +29,7 @@ export default function Layout({ children, particleMode = 'sakura' }) {
               <NavLink to="/distance" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>距离</NavLink>
             </div>
             <div className="nav-user">
+              <OnlineStatus />
               {user?.nickname} · <button className="btn-ghost" onClick={handleLogout}>退出</button>
             </div>
           </nav>

@@ -13,9 +13,9 @@ function groupTrajectories(locations) {
   const groups = {}
   for (const loc of locations) {
     if (loc.lat == null || loc.lng == null) continue
-    if (!isValidWuhanCoord(loc.lat, loc.lng)) continue
+    const { lat, lng } = normalizeCoord(loc.lat, loc.lng)
     if (!groups[loc.username]) groups[loc.username] = []
-    groups[loc.username].push(loc)
+    groups[loc.username].push({ ...loc, lat, lng })
   }
   for (const username of Object.keys(groups)) {
     groups[username].sort(
@@ -25,8 +25,16 @@ function groupTrajectories(locations) {
   return groups
 }
 
-function isValidWuhanCoord(lat, lng) {
-  return lat >= 29 && lat <= 32 && lng >= 113 && lng <= 116
+/** 修正偶发的经纬度颠倒 */
+function normalizeCoord(lat, lng) {
+  if (lat >= 70 && lat <= 140 && lng >= 15 && lng <= 55) {
+    return { lat: lng, lng: lat }
+  }
+  return { lat, lng }
+}
+
+function isValidCoord(lat, lng) {
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
 }
 
 function fitMeetPlaces(map, meetPlaces, AMap) {
@@ -53,8 +61,9 @@ function fitMeetPlaces(map, meetPlaces, AMap) {
 function fitAllPoints(map, meetPlaces, locations, AMap) {
   const points = meetPlaces.map((p) => [p.lng, p.lat])
   locations.forEach((loc) => {
-    if (isValidWuhanCoord(loc.lat, loc.lng)) {
-      points.push([loc.lng, loc.lat])
+    const { lat, lng } = normalizeCoord(loc.lat, loc.lng)
+    if (isValidCoord(lat, lng)) {
+      points.push([lng, lat])
     }
   })
 
@@ -222,15 +231,26 @@ export default function AmapView({ meetPlaces = [], locations = [], nicknames = 
 
     map.add(overlays)
     overlaysRef.current = overlays
-  }, [ready, meetPlaces, trajectories, nicknames])
+
+    requestAnimationFrame(() => {
+      map.resize()
+      const mode = Object.keys(trajectories).length > 0 ? 'all' : 'campus'
+      if (mode === 'all') {
+        fitAllPoints(map, meetPlaces, locations, AMap)
+        setViewMode('all')
+      } else {
+        fitMeetPlaces(map, meetPlaces, AMap)
+        setViewMode('campus')
+      }
+    })
+  }, [ready, meetPlaces, locations, trajectories, nicknames])
 
   useEffect(() => {
     if (!ready || !mapRef.current || !meetPlaces.length) return
     requestAnimationFrame(() => {
       mapRef.current?.resize()
-      applyView('campus')
     })
-  }, [ready, meetPlaces, applyView])
+  }, [ready, meetPlaces])
 
   if (error) {
     return (
@@ -262,7 +282,7 @@ export default function AmapView({ meetPlaces = [], locations = [], nicknames = 
               className={`amap-view-btn${viewMode === 'all' ? ' active' : ''}`}
               onClick={() => applyView('all')}
             >
-              查看全部
+              查看位置
             </button>
           )}
         </div>

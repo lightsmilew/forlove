@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { RealtimeProvider } from './context/RealtimeContext'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import TreeHole from './pages/TreeHole'
@@ -30,7 +31,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <RealtimeProvider>
+          <AppRoutes />
+        </RealtimeProvider>
       </AuthProvider>
     </BrowserRouter>
   )

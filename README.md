@@ -51,14 +51,24 @@ npm run dev    # 或 npm start
 
 前端运行在 http://localhost:5173
 
+**局域网访问（手机 / 另一台电脑）：**
+
+1. 重启前端后，终端会显示 `Network: http://192.168.x.x:5173/`
+2. 同一 WiFi 下的设备用该地址访问
+3. 若仍无法访问，在 Windows 防火墙中允许 Node.js / 端口 5173、8080
+
+```bash
+npm run dev    # 已配置 host: true，支持局域网
+```
+
 ### 3. 登录账号
 
 默认双账号（可在 `backend/src/main/resources/application.yml` 修改）：
 
 | 账号 | 密码 | 昵称 |
 |------|------|------|
-| you  | love123 | 你 |
-| me   | love123 | 我 |
+| ye   | love | 叶 |
+| jie  | love | 杰 |
 
 ## 个性化配置
 
@@ -67,13 +77,18 @@ npm run dev    # 或 npm start
 ```yaml
 forlove:
   couple:
-    username1: you          # 第一个账号
-    password1: love123
-    nickname1: 你           # 显示昵称
-    username2: me
-    password2: love123
-    nickname2: 我
-    start-date: 2024-01-01  # 在一起日期（统计相处天数）
+    username1: ye           # 第一个账号
+    password1: love
+    nickname1: 叶           # 显示昵称
+    username2: jie
+    password2: love
+    nickname2: 杰
+    love-quotes:            # 首页/树洞打字机情话
+      - 遇见你，是我这辈子最美的意外。
+      - 愿得一心人，白首不相离。
+    anniversaries:          # 日记页纪念日提醒；name 为「在一起」的 date 用于自动计算相处天数
+      - name: 在一起
+        date: 2026-06-18
     meet-places:            # 相遇地点（地图标记）
       - name: 武汉大学
         lat: 30.5315
@@ -100,7 +115,7 @@ forlove:
 
 ### 恋爱互动
 - **爱心点击**：累计分数，每 5 分解锁一句情话
-- **默契问答**：5 道选择题，生成默契值报告
+- **默契问答**：给 TA 出选择题，TA 作答后生成默契报告
 - **翻牌配对**：12 张卡片 emoji 配对游戏
 
 ### 卫星距离
@@ -153,6 +168,10 @@ ForLove/
 | POST | /api/diaries/{id}/photo | 上传照片 |
 | GET  | /api/diaries/stats | 恋爱统计 |
 | POST | /api/games/score | 保存游戏分数 |
+| POST | /api/games/quiz | 出题（选择题） |
+| GET  | /api/games/quiz/pending | 待答题目 |
+| POST | /api/games/quiz/{id}/answer | 提交答案 |
+| GET  | /api/games/quiz/report | 默契报告 |
 | POST | /api/distance/location | 上报位置 |
 | GET  | /api/distance/between | 计算距离 |
 

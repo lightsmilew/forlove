@@ -40,7 +40,7 @@ export default function Login() {
                 className="form-input"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="you / me"
+                placeholder="ye / jie"
                 required
               />
             </div>

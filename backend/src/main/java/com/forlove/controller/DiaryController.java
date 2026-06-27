@@ -1,5 +1,6 @@
 package com.forlove.controller;
 
+import com.forlove.config.CoupleProperties;
 import com.forlove.dto.DiaryRequest;
 import com.forlove.entity.Diary;
 import com.forlove.repository.DiaryRepository;
@@ -14,55 +15,63 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/diaries")
 public class DiaryController {
 
     private final DiaryRepository diaryRepository;
+    private final CoupleProperties coupleProperties;
 
     @Value("${upload.dir:./uploads}")
     private String uploadDir;
 
-    @Value("${forlove.couple.start-date}")
-    private String startDate;
-
-    public DiaryController(DiaryRepository diaryRepository) {
+    public DiaryController(DiaryRepository diaryRepository, CoupleProperties coupleProperties) {
         this.diaryRepository = diaryRepository;
+        this.coupleProperties = coupleProperties;
     }
 
     @GetMapping
-    public Page<Diary> list(
+    public Page<Map<String, Object>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return diaryRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size));
+        return diaryRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size))
+            .map(this::toView);
     }
 
     @PostMapping
-    public Diary create(@RequestBody DiaryRequest request, Authentication auth) {
+    public Map<String, Object> create(@RequestBody DiaryRequest request, Authentication auth) {
         Diary diary = new Diary();
         diary.setAuthor(auth.getName());
         diary.setContent(request.content());
         diary.setMood(request.mood() != null ? request.mood() : 5);
-        return diaryRepository.save(diary);
+        return toView(diaryRepository.save(diary));
+    }
+
+    @PostMapping("/{id}/photos")
+    public Map<String, Object> uploadPhotos(
+            @PathVariable Long id,
+            @RequestParam("files") MultipartFile[] files) throws IOException {
+        Diary diary = diaryRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("日记不存在"));
+        List<String> urls = new ArrayList<>(diary.getPhotoList());
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            String ext = getExtension(file.getOriginalFilename());
+            String filename = UUID.randomUUID() + ext;
+            Path path = Paths.get(uploadDir, filename);
+            Files.copy(file.getInputStream(), path);
+            urls.add("/uploads/" + filename);
+        }
+        diary.setPhotoList(urls);
+        return toView(diaryRepository.save(diary));
     }
 
     @PostMapping("/{id}/photo")
-    public Diary uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file)
+    public Map<String, Object> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file)
             throws IOException {
-        Diary diary = diaryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("日记不存在"));
-        String ext = getExtension(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + ext;
-        Path path = Paths.get(uploadDir, filename);
-        Files.copy(file.getInputStream(), path);
-        diary.setPhotoUrl("/uploads/" + filename);
-        return diaryRepository.save(diary);
+        return uploadPhotos(id, new MultipartFile[] { file });
     }
 
     @GetMapping("/stats")
@@ -72,7 +81,7 @@ public class DiaryController {
             .mapToInt(d -> d.getMood() != null ? d.getMood() : 5)
             .average()
             .orElse(5.0);
-        long daysTogether = ChronoUnit.DAYS.between(LocalDate.parse(startDate), LocalDate.now()) + 1;
+        long daysTogether = coupleProperties.getDaysTogether();
         int sweetIndex = (int) Math.min(100, avgMood * 10 + count * 2);
 
         Map<String, Object> result = new HashMap<>();
@@ -81,6 +90,18 @@ public class DiaryController {
         result.put("daysTogether", daysTogether);
         result.put("sweetIndex", sweetIndex);
         return result;
+    }
+
+    private Map<String, Object> toView(Diary diary) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", diary.getId());
+        map.put("author", diary.getAuthor());
+        map.put("content", diary.getContent());
+        map.put("mood", diary.getMood());
+        map.put("photoUrls", diary.getPhotoList());
+        map.put("photoUrl", diary.getPhotoList().isEmpty() ? null : diary.getPhotoList().get(0));
+        map.put("createdAt", diary.getCreatedAt());
+        return map;
     }
 
     private String getExtension(String filename) {

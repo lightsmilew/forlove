@@ -54,7 +54,34 @@ export const api = {
     return request(`/api/diaries/${id}/photo`, { method: 'POST', body: form })
   },
 
+  uploadDiaryPhotos: (id, files) => {
+    const form = new FormData()
+    files.forEach((file) => form.append('files', file))
+    return request(`/api/diaries/${id}/photos`, { method: 'POST', body: form })
+  },
+
   getDiaryStats: () => request('/api/diaries/stats'),
+
+  getPresence: () => request('/api/presence'),
+
+  presenceHeartbeat: () => request('/api/presence/heartbeat', { method: 'POST' }),
+
+  inviteGomoku: () => request('/api/games/gomoku/invite', { method: 'POST' }),
+
+  getPendingGomokuInvites: () => request('/api/games/gomoku/pending'),
+
+  getCurrentGomoku: () => request('/api/games/gomoku/current'),
+
+  getGomoku: (id) => request(`/api/games/gomoku/${id}`),
+
+  acceptGomoku: (id) => request(`/api/games/gomoku/${id}/accept`, { method: 'POST' }),
+
+  declineGomoku: (id) => request(`/api/games/gomoku/${id}/decline`, { method: 'POST' }),
+
+  moveGomoku: (id, x, y) =>
+    request(`/api/games/gomoku/${id}/move`, { method: 'POST', body: JSON.stringify({ x, y }) }),
+
+  resignGomoku: (id) => request(`/api/games/gomoku/${id}/resign`, { method: 'POST' }),
 
   saveGameScore: (gameType, score, extraData) =>
     request('/api/games/score', {
@@ -65,6 +92,24 @@ export const api = {
   getGameScores: () => request('/api/games/scores'),
 
   getCompatibility: () => request('/api/games/compatibility'),
+
+  createQuiz: (question, options, correctIndex) =>
+    request('/api/games/quiz', {
+      method: 'POST',
+      body: JSON.stringify({ question, options, correctIndex }),
+    }),
+
+  getPendingQuiz: () => request('/api/games/quiz/pending'),
+
+  getMyQuiz: () => request('/api/games/quiz/mine'),
+
+  getQuizReport: () => request('/api/games/quiz/report'),
+
+  answerQuiz: (id, answerIndex) =>
+    request(`/api/games/quiz/${id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ answerIndex }),
+    }),
 
   recordLocation: (lat, lng, placeName) =>
     request('/api/distance/location', {

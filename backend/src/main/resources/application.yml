@@ -20,13 +20,26 @@ forlove:
     secret: ForLoveSecretKey2024CoupleOnlyChangeInProduction!!
     expiration-ms: 604800000
   couple:
-    username1: you
-    password1: love123
-    username2: me
-    password2: love123
-    nickname1: 你
-    nickname2: 我
-    start-date: 2024-01-01
+    username1: ye
+    password1: love
+    username2: jie
+    password2: love
+    nickname1: 叶
+    nickname2: 杰
+    love-quotes:
+      - 遇见你，是我这辈子最美的意外。
+      - 愿得一心人，白首不相离。
+      - 你在的地方，就是我心安之处。
+      - 樱花落下的速度是每秒五厘米，而我走向你的速度，是心跳的频率。
+      - 武大樱花再美，也不及你笑起来的样子。
+      - 想和你一起看遍世间所有的樱花。
+      - 我的宇宙里，只有你一颗恒星。
+      - 每一天醒来，第一个想到的就是你。
+    anniversaries:
+      - name: 第一次见面
+        date: 2026-05-24
+      - name: 在一起
+        date: 2026-06-18
     meet-places:
       - name: 武汉大学
         lat: 30.5315

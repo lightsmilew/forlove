@@ -81,3 +81,6 @@ buildNumber.properties
 .cache/
 coverage/
 .nyc_output/
+
+# 自签名 HTTPS 证书（本地生成，勿提交）
+deploy/certs/

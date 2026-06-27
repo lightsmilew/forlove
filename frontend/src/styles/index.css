@@ -1578,6 +1578,34 @@ input, textarea {
   margin: 1.5rem 0;
 }
 
+.distance-secure-hint {
+  font-size: 0.88rem;
+  color: var(--accent);
+  background: rgba(232, 145, 168, 0.1);
+  border: 1px dashed var(--accent-light);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.distance-place-fallback {
+  margin-top: 1.25rem;
+}
+
+.distance-place-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.6rem;
+}
+
+.distance-place-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
 .anniversary-list {
   list-style: none;
 }

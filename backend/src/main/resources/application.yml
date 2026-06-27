@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 6748
 
 spring:
   datasource:
@@ -19,6 +19,15 @@ forlove:
   jwt:
     secret: ForLoveSecretKey2024CoupleOnlyChangeInProduction!!
     expiration-ms: 604800000
+  cors:
+    allowed-origin-patterns:
+      - "http://localhost:*"
+      - "http://127.0.0.1:*"
+      - "http://192.168.*:*"
+      - "http://10.*:*"
+      - "http://172.*:*"
+      - "http://*:*"
+      - "https://*:*"
   couple:
     username1: ye
     password1: love

@@ -31,11 +31,9 @@ public class GomokuController {
 
     @GetMapping("/current")
     public Map<String, Object> current(Authentication auth) {
-        Map<String, Object> game = gomokuService.currentGame(auth.getName());
-        if (game == null) {
-            return Map.of("game", (Object) null);
-        }
-        return Map.of("game", game);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("game", gomokuService.currentGame(auth.getName()));
+        return result;
     }
 
     @GetMapping("/{id}")

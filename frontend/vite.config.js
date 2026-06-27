@@ -1,16 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+const backendUrl = 'http://localhost:6748'
+
 export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    port: 5173,
+    port: 80,
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/uploads': 'http://localhost:8080',
+      '/api': backendUrl,
+      '/uploads': backendUrl,
       '/ws': {
-        target: 'http://localhost:8080',
+        target: backendUrl,
         ws: true,
         changeOrigin: true,
       },
@@ -18,12 +20,12 @@ export default defineConfig({
   },
   preview: {
     host: true,
-    port: 5173,
+    port: 80,
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/uploads': 'http://localhost:8080',
+      '/api': backendUrl,
+      '/uploads': backendUrl,
       '/ws': {
-        target: 'http://localhost:8080',
+        target: backendUrl,
         ws: true,
         changeOrigin: true,
       },

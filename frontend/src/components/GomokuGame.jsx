@@ -36,11 +36,11 @@ export default function GomokuGame() {
     setError('')
     try {
       const [currentRes, pending] = await Promise.all([
-        api.getCurrentGomoku(),
-        api.getPendingGomokuInvites(),
+        api.getCurrentGomoku().catch(() => ({ game: null })),
+        api.getPendingGomokuInvites().catch(() => []),
       ])
-      setGame(adaptGame(currentRes.game || null, user?.username))
-      setPendingInvites(pending)
+      setGame(adaptGame(currentRes?.game || null, user?.username))
+      setPendingInvites(Array.isArray(pending) ? pending : [])
     } catch (err) {
       setError(err.message)
     } finally {

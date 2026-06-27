@@ -13,24 +13,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
     private final StompAuthInterceptor stompAuthInterceptor;
+    private final CorsProperties corsProperties;
 
     public WebSocketConfig(
             JwtHandshakeInterceptor jwtHandshakeInterceptor,
-            StompAuthInterceptor stompAuthInterceptor) {
+            StompAuthInterceptor stompAuthInterceptor,
+            CorsProperties corsProperties) {
         this.jwtHandshakeInterceptor = jwtHandshakeInterceptor;
         this.stompAuthInterceptor = stompAuthInterceptor;
+        this.corsProperties = corsProperties;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns(
-                "http://localhost:*",
-                "http://127.0.0.1:*",
-                "http://192.168.*:*",
-                "http://10.*:*",
-                "http://172.*:*"
-            )
+            .setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns().toArray(String[]::new))
             .addInterceptors(jwtHandshakeInterceptor);
     }
 

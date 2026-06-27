@@ -33,13 +33,17 @@ function isMimeSupported(mime) {
 
 function pickMimeType() {
   if (typeof MediaRecorder === 'undefined') return null
-  const types = [
-    'audio/mp4',
-    'audio/webm;codecs=opus',
-    'audio/webm',
-    'audio/aac',
-    'audio/ogg;codecs=opus',
-  ]
+  const isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  const types = isIOS
+    ? ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm']
+    : [
+        'audio/mp4',
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/aac',
+        'audio/ogg;codecs=opus',
+      ]
   for (const t of types) {
     if (isMimeSupported(t)) return t
   }
@@ -58,8 +62,8 @@ function createMediaRecorder(stream, mime) {
 }
 
 function extFromMime(mime) {
-  if (!mime) return 'webm'
-  if (mime.includes('mp4') || mime.includes('aac') || mime.includes('m4a')) return '.m4a'
+  if (!mime) return '.webm'
+  if (mime.includes('mp4') || mime.includes('aac') || mime.includes('m4a')) return '.mp4'
   if (mime.includes('ogg')) return '.ogg'
   if (mime.includes('mpeg') || mime.includes('mp3')) return '.mp3'
   return '.webm'

@@ -735,6 +735,10 @@ input, textarea {
   line-height: 1.4;
 }
 
+.voice-player-blocked {
+  padding: 0.25rem 0;
+}
+
 .whisper-voice {
   display: flex;
   align-items: center;

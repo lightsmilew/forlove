@@ -14,8 +14,14 @@ public class Whisper {
     @Column(nullable = false)
     private String author;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    @Column(columnDefinition = "TEXT")
+    private String content = "";
+
+    /** 语音文件路径，如 /uploads/xxx.webm */
+    private String voiceUrl;
+
+    /** 语音时长（秒） */
+    private Integer voiceDuration;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -25,6 +31,10 @@ public class Whisper {
     public void setAuthor(String author) { this.author = author; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getVoiceUrl() { return voiceUrl; }
+    public void setVoiceUrl(String voiceUrl) { this.voiceUrl = voiceUrl; }
+    public Integer getVoiceDuration() { return voiceDuration; }
+    public void setVoiceDuration(Integer voiceDuration) { this.voiceDuration = voiceDuration; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import Heart3D from '../components/Heart3D'
 import GomokuGame from '../components/GomokuGame'
+import DrawGuessGame from '../components/DrawGuessGame'
 import { api } from '../api'
 
 const LOVE_MESSAGES = [
@@ -111,26 +112,37 @@ function QuizCreateForm({ onCreated }) {
           placeholder="例如：我最喜欢的季节是？"
         />
       </div>
-      {options.map((opt, i) => (
-        <div key={i} className="form-group quiz-option-row">
-          <label>
-            <input
-              type="radio"
-              name="correct"
-              checked={correctIndex === i}
-              onChange={() => setCorrectIndex(i)}
-            />
-            选项 {String.fromCharCode(65 + i)}
-          </label>
-          <input
-            className="form-input"
-            value={opt}
-            onChange={(e) => updateOption(i, e.target.value)}
-            placeholder={`选项 ${String.fromCharCode(65 + i)}`}
-          />
+      <div className="form-group">
+        <label className="quiz-create-options-label">选项（点击卡片标记正确答案）</label>
+        <div className="quiz-create-options">
+          {options.map((opt, i) => (
+            <div
+              key={i}
+              className={`quiz-create-option${correctIndex === i ? ' is-correct' : ''}`}
+              onClick={() => setCorrectIndex(i)}
+              onKeyDown={(e) => e.key === 'Enter' && setCorrectIndex(i)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={correctIndex === i}
+              aria-label={`选项 ${String.fromCharCode(65 + i)}${correctIndex === i ? '，已设为正确答案' : ''}`}
+            >
+              <div className="quiz-create-option-head">
+                <span className="quiz-create-letter">{String.fromCharCode(65 + i)}</span>
+                <span className="quiz-create-correct-label">
+                  {correctIndex === i ? '✓ 正确答案' : '点击设为正确答案'}
+                </span>
+              </div>
+              <input
+                className="form-input quiz-create-option-input"
+                value={opt}
+                onChange={(e) => updateOption(i, e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={`填写选项 ${String.fromCharCode(65 + i)} 的内容`}
+              />
+            </div>
+          ))}
         </div>
-      ))}
-      <p className="quiz-hint">选中 radio 标记正确答案（TA 需要猜中）</p>
+      </div>
       {error && <p className="error-msg">{error}</p>}
       {success && <p className="quiz-success">{success}</p>}
       <button className="btn btn-primary" type="submit" disabled={loading}>
@@ -269,20 +281,20 @@ export default function Games() {
 
   return (
     <Layout>
-      <h2 style={{ textAlign: 'center', fontSize: '2rem', color: 'var(--accent)', marginBottom: '1.5rem' }}>
-        恋爱互动小游戏
-      </h2>
+      <h2 className="page-title">恋爱互动小游戏</h2>
 
-      <div className="tab-bar" style={{ justifyContent: 'center' }}>
+      <div className="tab-bar games-tabs">
         <button className={`tab-btn${tab === 'heart' ? ' active' : ''}`} onClick={() => setTab('heart')}>爱心点击</button>
         <button className={`tab-btn${tab === 'quiz' ? ' active' : ''}`} onClick={() => setTab('quiz')}>默契问答</button>
         <button className={`tab-btn${tab === 'gomoku' ? ' active' : ''}`} onClick={() => setTab('gomoku')}>五子棋对决</button>
+        <button className={`tab-btn${tab === 'drawguess' ? ' active' : ''}`} onClick={() => setTab('drawguess')}>你画我猜</button>
       </div>
 
       <div className="card">
         {tab === 'heart' && <HeartGame />}
         {tab === 'quiz' && <QuizGame />}
         {tab === 'gomoku' && <GomokuGame />}
+        {tab === 'drawguess' && <DrawGuessGame />}
       </div>
     </Layout>
   )

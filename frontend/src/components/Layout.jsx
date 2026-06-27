@@ -5,7 +5,7 @@ import OnlineStatus from './OnlineStatus'
 import { useDarkMode } from '../hooks/useTheme'
 
 export default function Layout({ children, particleMode = 'sakura' }) {
-  const { user, logout, isLoggedIn } = useAuth()
+  const { logout, isLoggedIn } = useAuth()
   const navigate = useNavigate()
   useDarkMode()
 
@@ -30,7 +30,7 @@ export default function Layout({ children, particleMode = 'sakura' }) {
             </div>
             <div className="nav-user">
               <OnlineStatus />
-              {user?.nickname} · <button className="btn-ghost" onClick={handleLogout}>退出</button>
+              <button type="button" className="btn-ghost nav-logout" onClick={handleLogout}>退出</button>
             </div>
           </nav>
         )}

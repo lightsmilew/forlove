@@ -21,12 +21,19 @@ forlove:
     expiration-ms: 604800000
   cors:
     allowed-origin-patterns:
+      - "http://localhost"
       - "http://localhost:*"
+      - "http://127.0.0.1"
       - "http://127.0.0.1:*"
+      - "http://192.168.*"
       - "http://192.168.*:*"
+      - "http://10.*"
       - "http://10.*:*"
+      - "http://172.*"
       - "http://172.*:*"
+      - "http://*"
       - "http://*:*"
+      - "https://*"
       - "https://*:*"
   couple:
     username1: ye
@@ -56,6 +63,39 @@ forlove:
       - name: 湖北大学
         lat: 30.5810
         lng: 114.3290
+  draw-guess:
+    max-rounds: 6
+    words:
+      - 约会
+      - 奶茶
+      - 纪念日
+      - 牵手
+      - 拥抱
+      - 樱花
+      - 武汉大学
+      - 珞珈山
+      - 看电影
+      - 吃火锅
+      - 散步
+      - 晚安
+      - 早安
+      - 想你
+      - 表白
+      - 初吻
+      - 合照
+      - 礼物
+      - 惊喜
+      - 撒娇
+      - 吃醋
+      - 表白墙
+      - 情侣装
+      - 逛超市
+      - 看日落
+      - 养猫
+      - 做饭
+      - 吹头发
+      - 贴贴
+      - 心动
 
 upload:
   dir: ./uploads

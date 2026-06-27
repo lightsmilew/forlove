@@ -102,9 +102,7 @@ export default function Distance() {
 
   return (
     <Layout particleMode="snow">
-      <h2 style={{ textAlign: 'center', fontSize: '2rem', color: 'var(--accent)', marginBottom: '1.5rem' }}>
-        卫星距离纪念
-      </h2>
+      <h2 className="page-title">卫星距离纪念</h2>
 
       {distanceData && (
         <>

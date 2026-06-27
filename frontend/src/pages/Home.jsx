@@ -51,7 +51,7 @@ export default function Home() {
         <Link to="/games" className="card feature-card">
           <FeatureIcon name="games" variant="heart" />
           <h3 className="feature-title">恋爱互动</h3>
-          <p className="feature-desc">爱心点击、默契问答、五子棋对决，用游戏增进彼此了解</p>
+          <p className="feature-desc">爱心点击、默契问答、五子棋对决、你画我猜，用游戏增进彼此了解</p>
         </Link>
         <Link to="/distance" className="card feature-card">
           <FeatureIcon name="distance" variant="sky" />

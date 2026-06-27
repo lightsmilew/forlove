@@ -39,6 +39,13 @@ export const api = {
   postWhisper: (content) =>
     request('/api/whispers', { method: 'POST', body: JSON.stringify({ content }) }),
 
+  uploadWhisperVoice: (id, file, duration) => {
+    const form = new FormData()
+    form.append('file', file)
+    if (duration != null) form.append('duration', String(duration))
+    return request(`/api/whispers/${id}/voice`, { method: 'POST', body: form })
+  },
+
   deleteWhisper: (id) =>
     request(`/api/whispers/${id}`, { method: 'DELETE' }),
 
@@ -82,6 +89,28 @@ export const api = {
     request(`/api/games/gomoku/${id}/move`, { method: 'POST', body: JSON.stringify({ x, y }) }),
 
   resignGomoku: (id) => request(`/api/games/gomoku/${id}/resign`, { method: 'POST' }),
+
+  inviteDrawGuess: () => request('/api/games/drawguess/invite', { method: 'POST' }),
+
+  getPendingDrawGuessInvites: () => request('/api/games/drawguess/pending'),
+
+  getCurrentDrawGuess: () => request('/api/games/drawguess/current'),
+
+  acceptDrawGuess: (id) => request(`/api/games/drawguess/${id}/accept`, { method: 'POST' }),
+
+  declineDrawGuess: (id) => request(`/api/games/drawguess/${id}/decline`, { method: 'POST' }),
+
+  drawGuessStroke: (id, stroke) =>
+    request(`/api/games/drawguess/${id}/stroke`, { method: 'POST', body: JSON.stringify(stroke) }),
+
+  clearDrawGuessCanvas: (id) => request(`/api/games/drawguess/${id}/clear`, { method: 'POST' }),
+
+  guessDrawGuess: (id, guess) =>
+    request(`/api/games/drawguess/${id}/guess`, { method: 'POST', body: JSON.stringify({ guess }) }),
+
+  skipDrawGuess: (id) => request(`/api/games/drawguess/${id}/skip`, { method: 'POST' }),
+
+  forfeitDrawGuess: (id) => request(`/api/games/drawguess/${id}/forfeit`, { method: 'POST' }),
 
   saveGameScore: (gameType, score, extraData) =>
     request('/api/games/score', {

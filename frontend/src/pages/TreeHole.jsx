@@ -3,6 +3,8 @@ import Layout from '../components/Layout'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useTypewriter } from '../hooks/useTheme'
+import { useVoiceRecorder, formatDuration } from '../hooks/useVoiceRecorder'
+import VoicePlayer from '../components/VoicePlayer'
 
 function formatWhisperTime(t) {
   if (!t) return ''
@@ -20,7 +22,18 @@ function formatWhisperTime(t) {
   return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+function WhisperVoicePlayer({ url, duration }) {
+  return (
+    <div className="whisper-voice">
+      <VoicePlayer src={url} duration={duration} />
+    </div>
+  )
+}
+
 function WhisperLetter({ whisper, isMine, authorName, index }) {
+  const hasText = Boolean(whisper.content?.trim())
+  const hasVoice = Boolean(whisper.voiceUrl)
+
   return (
     <article
       className={`whisper-letter${isMine ? ' mine' : ' theirs'}`}
@@ -36,11 +49,22 @@ function WhisperLetter({ whisper, isMine, authorName, index }) {
             <time className="whisper-letter-time">{formatWhisperTime(whisper.createdAt)}</time>
           </div>
         </header>
-        <blockquote className="whisper-letter-quote">
-          <span className="whisper-quote-mark open">「</span>
-          {whisper.content}
-          <span className="whisper-quote-mark close">」</span>
-        </blockquote>
+        {hasVoice && (
+          <WhisperVoicePlayer
+            url={whisper.voiceUrl}
+            duration={whisper.voiceDuration}
+          />
+        )}
+        {hasText && (
+          <blockquote className="whisper-letter-quote">
+            <span className="whisper-quote-mark open">「</span>
+            {whisper.content}
+            <span className="whisper-quote-mark close">」</span>
+          </blockquote>
+        )}
+        {!hasText && !hasVoice && (
+          <p className="whisper-letter-empty">（空消息）</p>
+        )}
       </div>
     </article>
   )
@@ -55,7 +79,10 @@ export default function TreeHole() {
   const [quotes, setQuotes] = useState([])
   const [config, setConfig] = useState(null)
   const [justSent, setJustSent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const typeText = useTypewriter(quotes)
+
+  const voice = useVoiceRecorder()
 
   const nicknameMap = useMemo(() => {
     if (!config) return {}
@@ -81,14 +108,38 @@ export default function TreeHole() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!content.trim()) return
-    await api.postWhisper(content.trim())
-    setContent('')
-    setJustSent(true)
-    setTimeout(() => setJustSent(false), 2500)
-    setPage(0)
-    load(0)
+    const text = content.trim()
+    const voiceFile = voice.getFile()
+    if (!text && !voiceFile) return
+
+    setSubmitting(true)
+    try {
+      const whisper = await api.postWhisper(text)
+      if (voiceFile) {
+        await api.uploadWhisperVoice(whisper.id, voiceFile, voice.duration)
+      }
+      setContent('')
+      voice.clearRecording()
+      setJustSent(true)
+      setTimeout(() => setJustSent(false), 2500)
+      setPage(0)
+      load(0)
+    } catch (err) {
+      alert(err.message || '发送失败')
+    } finally {
+      setSubmitting(false)
+    }
   }
+
+  const toggleRecording = () => {
+    if (voice.recording) {
+      voice.stopRecording()
+    } else {
+      voice.startRecording()
+    }
+  }
+
+  const canSend = (content.trim() || voice.blob) && !voice.recording && !submitting
 
   const getAuthorName = (author) => nicknameMap[author] || author
 
@@ -113,9 +164,42 @@ export default function TreeHole() {
               rows={3}
             />
           </div>
-          <button className="btn btn-primary" type="submit">
-            {justSent ? '已寄出 🌸' : '发送悄悄话'}
-          </button>
+
+          <div className="treehole-voice-bar">
+            <div className="treehole-actions">
+              <button
+                type="button"
+                className={`btn btn-secondary treehole-record-btn${voice.recording ? ' recording' : ''}${voice.blob ? ' has-preview' : ''}`}
+                onClick={toggleRecording}
+                disabled={submitting || Boolean(voice.blob)}
+                aria-label={voice.recording ? '停止录音' : '开始录音'}
+              >
+                {voice.recording
+                  ? <>⏹ 录音中 {formatDuration(voice.duration)}</>
+                  : voice.blob
+                    ? '已录制'
+                    : '点击录音'}
+              </button>
+              <button className="btn btn-primary treehole-send-btn" type="submit" disabled={!canSend}>
+                {justSent ? '已寄出 🌸' : submitting ? '发送中...' : '发送悄悄话'}
+              </button>
+            </div>
+
+            {voice.previewUrl && !voice.recording && (
+              <div className="treehole-voice-preview">
+                <VoicePlayer src={voice.previewUrl} duration={voice.duration} />
+                <button
+                  type="button"
+                  className="btn-ghost treehole-voice-clear"
+                  onClick={voice.clearRecording}
+                >
+                  删除
+                </button>
+              </div>
+            )}
+
+            {voice.error && <p className="treehole-voice-error">{voice.error}</p>}
+          </div>
         </form>
       </div>
 
@@ -130,7 +214,7 @@ export default function TreeHole() {
           <div className="whisper-empty">
             <span className="whisper-empty-icon">🌸</span>
             <p>还没有悄悄话</p>
-            <p className="whisper-empty-hint">写下第一句，让樱花替你传达心意</p>
+            <p className="whisper-empty-hint">写下文字或录一段语音，让樱花替你传达心意</p>
           </div>
         ) : (
           <div className="whisper-stream">

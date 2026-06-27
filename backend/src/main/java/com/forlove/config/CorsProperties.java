@@ -11,12 +11,19 @@ import java.util.List;
 public class CorsProperties {
 
     private List<String> allowedOriginPatterns = new ArrayList<>(List.of(
+        "http://localhost",
         "http://localhost:*",
+        "http://127.0.0.1",
         "http://127.0.0.1:*",
+        "http://192.168.*",
         "http://192.168.*:*",
+        "http://10.*",
         "http://10.*:*",
+        "http://172.*",
         "http://172.*:*",
+        "http://*",
         "http://*:*",
+        "https://*",
         "https://*:*"
     ));
 

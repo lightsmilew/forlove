@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import Layout from '../components/Layout'
+import PhotoLightbox from '../components/PhotoLightbox'
 import { api } from '../api'
 import { getMoodLabel, MoodPicker } from '../utils/mood'
 
@@ -22,6 +23,7 @@ export default function Diary() {
   const [stats, setStats] = useState(null)
   const [config, setConfig] = useState(null)
   const [photos, setPhotos] = useState([])
+  const [lightbox, setLightbox] = useState(null)
   const photoInputRef = useRef(null)
   const photosRef = useRef(photos)
   photosRef.current = photos
@@ -103,9 +105,7 @@ export default function Diary() {
 
   return (
     <Layout>
-      <h2 style={{ textAlign: 'center', fontSize: '2rem', color: 'var(--accent)', marginBottom: '1.5rem' }}>
-        情侣日记本
-      </h2>
+      <h2 className="page-title">情侣日记本</h2>
 
       {stats && (
         <div className="stats-grid">
@@ -208,7 +208,19 @@ export default function Diary() {
           {getDiaryPhotos(d).length > 0 && (
             <div className="diary-photo-grid">
               {getDiaryPhotos(d).map((url, i) => (
-                <img key={i} src={url} alt={`日记照片 ${i + 1}`} className="diary-photo" />
+                <button
+                  key={i}
+                  type="button"
+                  className="diary-photo-btn"
+                  aria-label={`查看日记照片 ${i + 1}`}
+                  onClick={() => setLightbox({
+                    src: url,
+                    alt: `日记照片 ${i + 1}`,
+                    downloadName: `diary-${d.id}-${i + 1}.jpg`,
+                  })}
+                >
+                  <img src={url} alt={`日记照片 ${i + 1}`} className="diary-photo" />
+                </button>
               ))}
             </div>
           )}
@@ -222,6 +234,15 @@ export default function Diary() {
           <span style={{ lineHeight: '36px', color: 'var(--text-secondary)' }}>{page + 1} / {totalPages}</span>
           <button className="page-btn" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>›</button>
         </div>
+      )}
+
+      {lightbox && (
+        <PhotoLightbox
+          src={lightbox.src}
+          alt={lightbox.alt}
+          downloadName={lightbox.downloadName}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </Layout>
   )

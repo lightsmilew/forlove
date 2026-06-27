@@ -15,14 +15,24 @@ export function RealtimeProvider({ children }) {
   const [presence, setPresence] = useState([])
   const clientRef = useRef(null)
   const gomokuListenersRef = useRef(new Set())
+  const drawGuessListenersRef = useRef(new Set())
 
   const notifyGomoku = useCallback((payload) => {
     gomokuListenersRef.current.forEach((fn) => fn(payload))
   }, [])
 
+  const notifyDrawGuess = useCallback((payload) => {
+    drawGuessListenersRef.current.forEach((fn) => fn(payload))
+  }, [])
+
   const subscribeGomoku = useCallback((listener) => {
     gomokuListenersRef.current.add(listener)
     return () => gomokuListenersRef.current.delete(listener)
+  }, [])
+
+  const subscribeDrawGuess = useCallback((listener) => {
+    drawGuessListenersRef.current.add(listener)
+    return () => drawGuessListenersRef.current.delete(listener)
   }, [])
 
   useEffect(() => {
@@ -67,6 +77,13 @@ export function RealtimeProvider({ children }) {
             /* ignore */
           }
         })
+        client.subscribe('/user/queue/drawguess', (msg) => {
+          try {
+            notifyDrawGuess(JSON.parse(msg.body))
+          } catch {
+            /* ignore */
+          }
+        })
       },
     })
 
@@ -79,10 +96,10 @@ export function RealtimeProvider({ children }) {
       client.deactivate()
       clientRef.current = null
     }
-  }, [isLoggedIn, user?.token, notifyGomoku])
+  }, [isLoggedIn, user?.token, notifyGomoku, notifyDrawGuess])
 
   return (
-    <RealtimeContext.Provider value={{ presence, subscribeGomoku }}>
+    <RealtimeContext.Provider value={{ presence, subscribeGomoku, subscribeDrawGuess }}>
       {children}
     </RealtimeContext.Provider>
   )
